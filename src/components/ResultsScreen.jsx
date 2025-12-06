@@ -201,15 +201,39 @@ const ResultsScreen = ({ examData, userAnswers, onRestart }) => {
                     <div>
                       <span className="font-medium text-green-700">Correct Answer: </span>
                       <span className="text-green-800">
-                        {correctAnswer ? (
-                          Array.isArray(correctAnswer) ? 
-                            correctAnswer.join(', ') : 
-                            correctAnswer.toString()
-                        ) : (
-                          question.sets ? 
-                            question.sets.map(set => set.correctAnswer).join(', ') :
-                            'Multiple valid answers possible'
-                        )}
+                        {(() => {
+                          // Handle direct correctAnswer field
+                          if (correctAnswer) {
+                            return Array.isArray(correctAnswer) ? 
+                              correctAnswer.join(', ') : 
+                              correctAnswer.toString();
+                          }
+                          
+                          // Handle questions with sets (Q2, Q3, Q4, Q5, Q6, Q7)
+                          if (question.sets && Array.isArray(question.sets)) {
+                            return question.sets.map(set => set.correctAnswer).join(', ');
+                          }
+                          
+                          // Handle questions with questions array (Q8, Q9)
+                          if (question.questions && Array.isArray(question.questions)) {
+                            return question.questions.map(q => q.correctAnswer).join(', ');
+                          }
+                          
+                          // Handle rearrange letters specifically
+                          if (question.type === 'rearrange_letters' && question.questions) {
+                            return question.questions.map(q => q.correctAnswer).join(', ');
+                          }
+                          
+                          // Handle word making questions
+                          if (question.type === 'make_words' && question.correctAnswer) {
+                            return Array.isArray(question.correctAnswer) ? 
+                              question.correctAnswer.join(', ') : 
+                              question.correctAnswer.toString();
+                          }
+                          
+                          // Fallback
+                          return 'Check answer key';
+                        })()}
                       </span>
                     </div>
                   </div>

@@ -237,34 +237,37 @@ const generateQuestion7 = () => {
   };
 };
 
-// Generate Question 8: Missing letter
+// Generate Question 8: Missing letter (using predefined data for accuracy)
 const generateQuestion8 = () => {
-  const questions = [];
-  for (let i = 0; i < 10; i++) {
-    const word = spellBeeData.spellBeeWords[Math.floor(Math.random() * spellBeeData.spellBeeWords.length)];
-    const letterIndex = Math.floor(Math.random() * word.length);
-    const missingLetter = word[letterIndex];
-    const incompleteWord = word.slice(0, letterIndex) + '__' + word.slice(letterIndex + 1);
+  const selectedWords = getRandomItems(spellBeeData.missingLetterWords, 10);
+  
+  const questions = selectedWords.map(wordData => {
+    const word = wordData.word;
+    const missingLetter = wordData.missing;
+    const options = [...wordData.options]; // Copy the predefined options
     
-    // Generate a wrong option
-    const vowels = ['A', 'E', 'I', 'O', 'U'];
-    const consonants = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z'];
-    
-    let wrongOption;
-    if (vowels.includes(missingLetter)) {
-      wrongOption = vowels[Math.floor(Math.random() * vowels.length)];
-    } else {
-      wrongOption = consonants[Math.floor(Math.random() * consonants.length)];
+    // Find where the missing letter should be placed
+    let letterIndex = -1;
+    for (let i = 0; i < word.length; i++) {
+      if (word[i] === missingLetter) {
+        letterIndex = i;
+        break;
+      }
     }
     
-    const options = Math.random() > 0.5 ? [missingLetter, wrongOption] : [wrongOption, missingLetter];
+    // Create incomplete word with __ where letter is missing
+    const incompleteWord = word.slice(0, letterIndex) + '__' + word.slice(letterIndex + 1);
     
-    questions.push({
+    // Shuffle the options so correct answer isn't always in same position
+    const shuffledOptions = shuffleArray(options);
+    
+    return {
       incompleteWord: incompleteWord,
-      options: options,
+      originalWord: word, // For debugging/verification
+      options: shuffledOptions,
       correctAnswer: missingLetter
-    });
-  }
+    };
+  });
   
   return {
     type: 'missing_letter',
