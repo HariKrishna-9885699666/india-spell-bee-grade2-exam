@@ -85,14 +85,17 @@ const generateQuestion2 = () => {
     // Generate 2 additional misspelled words with guaranteed misspellings
     const otherIncorrectWords = [];
     const usedWords = new Set([selectedPair.correct, selectedPair.incorrect]);
+    const spellBeeWordSet = new Set(spellBeeData.spellBeeWords);
     
     let attempts = 0;
     while (otherIncorrectWords.length < 2 && attempts < 50) {
       const randomWord = spellBeeData.spellBeeWords[Math.floor(Math.random() * spellBeeData.spellBeeWords.length)];
       const misspelledVersion = generateMisspelledWord(randomWord);
       
-      // Ensure it's different from original and not already used
-      if (!usedWords.has(misspelledVersion) && misspelledVersion !== randomWord) {
+      // Ensure it's misspelled, not in spell bee list, different from original, and not already used
+      if (!usedWords.has(misspelledVersion) && 
+          misspelledVersion !== randomWord && 
+          !spellBeeWordSet.has(misspelledVersion)) {
         otherIncorrectWords.push(misspelledVersion);
         usedWords.add(misspelledVersion);
       }
@@ -102,7 +105,7 @@ const generateQuestion2 = () => {
     // If we couldn't generate enough, use some from other pairs
     while (otherIncorrectWords.length < 2) {
       const otherPair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
-      if (!usedWords.has(otherPair.incorrect)) {
+      if (!usedWords.has(otherPair.incorrect) && !spellBeeWordSet.has(otherPair.incorrect)) {
         otherIncorrectWords.push(otherPair.incorrect);
         usedWords.add(otherPair.incorrect);
       }

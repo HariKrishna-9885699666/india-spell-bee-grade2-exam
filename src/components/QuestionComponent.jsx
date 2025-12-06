@@ -193,7 +193,7 @@ const QuestionComponent = memo(({ question, questionIndex, userAnswer, onAnswerC
           Enter words separated by commas (minimum 4 letters each):
         </label>
         <textarea
-          value={userAnswer ? userAnswer.join(', ') : ''}
+          value={userAnswer ? (Array.isArray(userAnswer) ? userAnswer.join(', ') : userAnswer) : ''}
           onChange={(e) => handleTextInput(0, e.target.value)}
           className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="Example: FRESH, RING, SHINE, SIGN..."

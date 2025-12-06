@@ -18,6 +18,7 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
   const [userAnswers, setUserAnswers] = useState(new Array(examData.questions.length).fill(null));
   const [timeLeft, setTimeLeft] = useState(20 * 60); // 20 minutes in seconds
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const [isPending, startTransitionAction] = useTransition();
   const [isQuestionsAccordionOpen, setIsQuestionsAccordionOpen] = useState(false);
 
@@ -31,8 +32,8 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
   const handleTimerTick = useCallback(() => {
     setTimeLeft((prevTime) => {
       if (prevTime <= 1) {
-        // Auto-submit when time runs out
-        handleSubmitExam();
+        // Show timeout warning but don't auto-submit
+        setShowTimeoutWarning(true);
         return 0;
       }
       return prevTime - 1;
@@ -346,6 +347,40 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
                 className="btn-primary flex-1"
               >
                 Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Timeout Warning Modal */}
+      {showTimeoutWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full border-l-4 border-orange-500">
+            <div className="flex items-center mb-4">
+              <svg className="w-8 h-8 text-orange-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-800">Time's Up!</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              The 20-minute exam time has expired. You can continue working on your answers, but please consider submitting your exam soon.
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setShowTimeoutWarning(false)}
+                className="btn-secondary flex-1"
+              >
+                Continue Working
+              </button>
+              <button
+                onClick={() => {
+                  setShowTimeoutWarning(false);
+                  setShowConfirmSubmit(true);
+                }}
+                className="btn-primary flex-1"
+              >
+                Submit Now
               </button>
             </div>
           </div>
