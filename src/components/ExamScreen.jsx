@@ -19,6 +19,7 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
   const [timeLeft, setTimeLeft] = useState(20 * 60); // 20 minutes in seconds
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [isPending, startTransitionAction] = useTransition();
+  const [isQuestionsAccordionOpen, setIsQuestionsAccordionOpen] = useState(false);
 
   // React 19: Optimistic updates for question navigation
   const [optimisticQuestion, setOptimisticQuestion] = useOptimistic(
@@ -165,34 +166,90 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
           {/* Question Navigation Sidebar */}
           <div className="lg:col-span-1">
             <div className="card sticky top-24">
-              <h3 className="font-semibold text-gray-700 mb-4">Questions</h3>
-              <div className="grid grid-cols-5 lg:grid-cols-3 gap-2">
-                {examData.questions.map((_, index) => {
-                  const status = answerStatuses[index];
-                  const isCurrentOptimistic = optimisticQuestion === index;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => goToQuestion(index)}
-                      disabled={isPending && !isCurrentOptimistic}
-                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                        isCurrentOptimistic
-                          ? 'bg-primary-600 text-white ring-2 ring-primary-300'
-                          : currentQuestion === index && !isPending
-                          ? 'bg-primary-600 text-white'
-                          : status === 'answered'
-                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                          : status === 'partial'
-                          ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      } ${isPending && !isCurrentOptimistic ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
+              {/* Desktop View - Always Visible */}
+              <div className="hidden lg:block">
+                <h3 className="font-semibold text-gray-700 mb-4">Questions</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {examData.questions.map((_, index) => {
+                    const status = answerStatuses[index];
+                    const isCurrentOptimistic = optimisticQuestion === index;
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => goToQuestion(index)}
+                        disabled={isPending && !isCurrentOptimistic}
+                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                          isCurrentOptimistic
+                            ? 'bg-primary-600 text-white ring-2 ring-primary-300'
+                            : currentQuestion === index && !isPending
+                            ? 'bg-primary-600 text-white'
+                            : status === 'answered'
+                            ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                            : status === 'partial'
+                            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        } ${isPending && !isCurrentOptimistic ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {index + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Mobile View - Accordion */}
+              <div className="lg:hidden">
+                <button
+                  onClick={() => setIsQuestionsAccordionOpen(!isQuestionsAccordionOpen)}
+                  className="w-full flex items-center justify-between p-3 text-left font-semibold text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <span>Questions ({currentQuestion + 1}/{examData.questions.length})</span>
+                  <svg 
+                    className={`w-5 h-5 transition-transform ${isQuestionsAccordionOpen ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {isQuestionsAccordionOpen && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-5 gap-2">
+                      {examData.questions.map((_, index) => {
+                        const status = answerStatuses[index];
+                        const isCurrentOptimistic = optimisticQuestion === index;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              goToQuestion(index);
+                              setIsQuestionsAccordionOpen(false); // Close accordion after selection
+                            }}
+                            disabled={isPending && !isCurrentOptimistic}
+                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                              isCurrentOptimistic
+                                ? 'bg-primary-600 text-white ring-2 ring-primary-300'
+                                : currentQuestion === index && !isPending
+                                ? 'bg-primary-600 text-white'
+                                : status === 'answered'
+                                ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                : status === 'partial'
+                                ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            } ${isPending && !isCurrentOptimistic ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {index + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
               
+              {/* Legend - Show for both desktop and mobile */}
               <div className="mt-4 text-xs text-gray-600">
                 <div className="flex items-center mb-1">
                   <div className="w-3 h-3 bg-green-100 rounded mr-2"></div>
