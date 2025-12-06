@@ -16,30 +16,43 @@ const getRandomItems = (array, count) => {
   return shuffled.slice(0, count);
 };
 
-// Generate misspelled version of a word
+// Generate misspelled version of a word with better guarantee of change
 const generateMisspelledWord = (word) => {
   const modifications = [
-    // Common misspelling patterns
+    // Common misspelling patterns - more aggressive
     (w) => w.replace(/C/g, 'K'),
     (w) => w.replace(/K/g, 'C'),
     (w) => w.replace(/E/g, 'A'),
     (w) => w.replace(/A/g, 'E'),
     (w) => w.replace(/I/g, 'Y'),
     (w) => w.replace(/Y/g, 'I'),
-    (w) => w.replace(/ER/g, 'RE'),
-    (w) => w.replace(/RE/g, 'ER'),
-    (w) => w.replace(/LE/g, 'EL'),
-    (w) => w.replace(/EL/g, 'LE'),
+    (w) => w.replace(/ER$/g, 'RE'),
+    (w) => w.replace(/RE$/g, 'ER'),
+    (w) => w.replace(/LE$/g, 'EL'),
+    (w) => w.replace(/EL$/g, 'LE'),
     (w) => w.replace(/TION/g, 'SHUN'),
     (w) => w.replace(/PH/g, 'F'),
     (w) => w.replace(/F/g, 'PH'),
+    // More guaranteed changes
+    (w) => w.replace(/S$/g, 'Z'),
+    (w) => w.replace(/Z$/g, 'S'),
+    (w) => w + 'E',  // Add extra E at end
+    (w) => w.slice(0, -1), // Remove last letter if word is long enough
+    (w) => w.replace(/([AEIOU])/g, (match, vowel) => vowel === 'A' ? 'E' : 'A'), // Replace first vowel
   ];
   
-  const randomModification = modifications[Math.floor(Math.random() * modifications.length)];
-  const misspelled = randomModification(word);
+  // Try multiple modifications until we get a change
+  for (let i = 0; i < modifications.length; i++) {
+    const randomModification = modifications[Math.floor(Math.random() * modifications.length)];
+    const misspelled = randomModification(word);
+    
+    if (misspelled !== word && misspelled.length > 2) {
+      return misspelled;
+    }
+  }
   
-  // Ensure we actually changed something
-  return misspelled !== word ? misspelled : word.replace(/E/g, 'A');
+  // Fallback - guaranteed change
+  return word.length > 3 ? word.slice(0, -1) + 'X' : word + 'X';
 };
 
 // Generate Question 1: Circle all misspelled words
@@ -65,25 +78,43 @@ const generateQuestion2 = () => {
   const availablePairs = [...spellBeeData.pickCorrectWordPairs];
   
   for (let i = 0; i < 5; i++) {
-    // Get one correct/incorrect pair
+    // Get one correct/incorrect pair from predefined data
     const pairIndex = Math.floor(Math.random() * availablePairs.length);
     const selectedPair = availablePairs.splice(pairIndex, 1)[0];
     
-    // Get 2 additional random incorrect words that are different
+    // Generate 2 additional misspelled words with guaranteed misspellings
     const otherIncorrectWords = [];
     const usedWords = new Set([selectedPair.correct, selectedPair.incorrect]);
     
-    while (otherIncorrectWords.length < 2) {
+    let attempts = 0;
+    while (otherIncorrectWords.length < 2 && attempts < 50) {
       const randomWord = spellBeeData.spellBeeWords[Math.floor(Math.random() * spellBeeData.spellBeeWords.length)];
       const misspelledVersion = generateMisspelledWord(randomWord);
       
-      if (!usedWords.has(misspelledVersion)) {
+      // Ensure it's different from original and not already used
+      if (!usedWords.has(misspelledVersion) && misspelledVersion !== randomWord) {
         otherIncorrectWords.push(misspelledVersion);
         usedWords.add(misspelledVersion);
       }
+      attempts++;
     }
     
-    const allOptions = shuffleArray([selectedPair.correct, selectedPair.incorrect, ...otherIncorrectWords]);
+    // If we couldn't generate enough, use some from other pairs
+    while (otherIncorrectWords.length < 2) {
+      const otherPair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+      if (!usedWords.has(otherPair.incorrect)) {
+        otherIncorrectWords.push(otherPair.incorrect);
+        usedWords.add(otherPair.incorrect);
+      }
+    }
+    
+    // Create the set with 1 correct and 3 incorrect words
+    const allOptions = shuffleArray([
+      selectedPair.correct, 
+      selectedPair.incorrect, 
+      ...otherIncorrectWords
+    ]);
+    
     sets.push({
       words: allOptions,
       correctAnswer: selectedPair.correct
