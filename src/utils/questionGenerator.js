@@ -401,8 +401,15 @@ export const calculateScore = (questions, userAnswers) => {
         
       case 'make_words':
         // Simple scoring for word making - 1 point per valid word
-        if (Array.isArray(userAnswer) && userAnswer.length > 0) {
-          totalScore += Math.min(userAnswer.length, 10);
+        if (userAnswer) {
+          let wordCount = 0;
+          if (Array.isArray(userAnswer)) {
+            wordCount = userAnswer.length;
+          } else if (typeof userAnswer === 'string') {
+            const words = userAnswer.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length >= 4);
+            wordCount = words.length;
+          }
+          totalScore += Math.min(wordCount, 10);
         }
         break;
     }

@@ -46,11 +46,17 @@ const QuestionComponent = memo(({ question, questionIndex, userAnswer, onAnswerC
         newAnswers[inputIndex] = value;
         onAnswerChange(questionIndex, newAnswers);
       } else if (question.type === 'make_words') {
-        const words = value.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length >= 4);
-        onAnswerChange(questionIndex, words);
+        // Store the raw text value, process it later on blur or submit
+        onAnswerChange(questionIndex, value);
       }
     });
   }, [question.type, question.questions, userAnswer, questionIndex, onAnswerChange]);
+
+  const handleMakeWordsBlur = useCallback((value) => {
+    // Process the words when user stops typing
+    const words = value.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length >= 4);
+    onAnswerChange(questionIndex, words);
+  }, [questionIndex, onAnswerChange]);
 
   const renderCircleWordsQuestion = () => (
     <div>
@@ -193,14 +199,15 @@ const QuestionComponent = memo(({ question, questionIndex, userAnswer, onAnswerC
           Enter words separated by commas (minimum 4 letters each):
         </label>
         <textarea
-          value={userAnswer ? (Array.isArray(userAnswer) ? userAnswer.join(', ') : userAnswer) : ''}
+          value={Array.isArray(userAnswer) ? userAnswer.join(', ') : (userAnswer || '')}
           onChange={(e) => handleTextInput(0, e.target.value)}
+          onBlur={(e) => handleMakeWordsBlur(e.target.value)}
           className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="Example: FRESH, RING, SHINE, SIGN..."
           style={{ textTransform: 'uppercase' }}
         />
         <div className="mt-2 text-sm text-gray-600">
-          Words entered: {userAnswer ? userAnswer.length : 0}
+          Words entered: {userAnswer ? (Array.isArray(userAnswer) ? userAnswer.length : userAnswer.split(',').map(w => w.trim()).filter(w => w.length >= 4).length) : 0}
         </div>
       </div>
     </div>
