@@ -354,10 +354,17 @@ export const calculateScore = (questions, userAnswers) => {
       case 'pick_correct_from_four':
       case 'pick_misspelled_from_four':
       case 'pick_misspelled_from_three':
-      case 'pick_correct_from_two':
       case 'pick_correct_from_three':
         userAnswer.forEach((answer, setIndex) => {
           if (answer === question.sets[setIndex].correctAnswer) {
+            totalScore += 1;
+          }
+        });
+        break;
+        
+      case 'pick_correct_from_two':
+        userAnswer.forEach((answer, setIndex) => {
+          if (answer === question.pairs[setIndex].correctAnswer) {
             totalScore += 1;
           }
         });

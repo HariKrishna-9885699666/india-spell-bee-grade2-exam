@@ -20,12 +20,14 @@ const QuestionComponent = memo(({ question, questionIndex, userAnswer, onAnswerC
 
   const handleSingleSelection = useCallback((setIndex, selectedWord) => {
     startTransition(() => {
-      const currentAnswers = userAnswer || new Array(question.sets.length).fill(null);
+      // Handle both sets (Q2-Q5, Q7) and pairs (Q6) structures
+      const arrayLength = question.sets ? question.sets.length : question.pairs ? question.pairs.length : 0;
+      const currentAnswers = userAnswer || new Array(arrayLength).fill(null);
       const newAnswers = [...currentAnswers];
       newAnswers[setIndex] = selectedWord;
       onAnswerChange(questionIndex, newAnswers);
     });
-  }, [userAnswer, question.sets, questionIndex, onAnswerChange]);
+  }, [userAnswer, question.sets, question.pairs, questionIndex, onAnswerChange]);
 
   const handleMissingLetterSelection = useCallback((questionIdx, selectedLetter) => {
     startTransition(() => {

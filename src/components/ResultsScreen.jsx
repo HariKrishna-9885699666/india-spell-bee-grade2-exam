@@ -209,9 +209,14 @@ const ResultsScreen = ({ examData, userAnswers, onRestart }) => {
                               correctAnswer.toString();
                           }
                           
-                          // Handle questions with sets (Q2, Q3, Q4, Q5, Q6, Q7)
+                          // Handle questions with sets (Q2, Q3, Q4, Q5, Q7)
                           if (question.sets && Array.isArray(question.sets)) {
                             return question.sets.map(set => set.correctAnswer).join(', ');
+                          }
+                          
+                          // Handle Question 6 with pairs structure
+                          if (question.pairs && Array.isArray(question.pairs)) {
+                            return question.pairs.map(pair => pair.correctAnswer).join(', ');
                           }
                           
                           // Handle questions with questions array (Q8, Q9)
