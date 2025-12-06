@@ -349,49 +349,59 @@ export const calculateScore = (questions, userAnswers) => {
     switch (question.type) {
       case 'circle_misspelled':
       case 'circle_correct':
-        const correctSelections = userAnswer.filter(word => question.correctAnswer.includes(word));
-        const incorrectSelections = userAnswer.filter(word => !question.correctAnswer.includes(word));
-        totalScore += Math.max(0, correctSelections.length - incorrectSelections.length);
+        if (Array.isArray(userAnswer)) {
+          const correctSelections = userAnswer.filter(word => question.correctAnswer.includes(word));
+          const incorrectSelections = userAnswer.filter(word => !question.correctAnswer.includes(word));
+          totalScore += Math.max(0, correctSelections.length - incorrectSelections.length);
+        }
         break;
         
       case 'pick_correct_from_four':
       case 'pick_misspelled_from_four':
       case 'pick_misspelled_from_three':
       case 'pick_correct_from_three':
-        userAnswer.forEach((answer, setIndex) => {
-          if (answer === question.sets[setIndex].correctAnswer) {
-            totalScore += 1;
-          }
-        });
+        if (Array.isArray(userAnswer)) {
+          userAnswer.forEach((answer, setIndex) => {
+            if (answer === question.sets[setIndex].correctAnswer) {
+              totalScore += 1;
+            }
+          });
+        }
         break;
         
       case 'pick_correct_from_two':
-        userAnswer.forEach((answer, setIndex) => {
-          if (answer === question.pairs[setIndex].correctAnswer) {
-            totalScore += 1;
-          }
-        });
+        if (Array.isArray(userAnswer)) {
+          userAnswer.forEach((answer, setIndex) => {
+            if (answer === question.pairs[setIndex].correctAnswer) {
+              totalScore += 1;
+            }
+          });
+        }
         break;
         
       case 'missing_letter':
-        userAnswer.forEach((answer, qIndex) => {
-          if (answer === question.questions[qIndex].correctAnswer) {
-            totalScore += 1;
-          }
-        });
+        if (Array.isArray(userAnswer)) {
+          userAnswer.forEach((answer, qIndex) => {
+            if (answer === question.questions[qIndex].correctAnswer) {
+              totalScore += 1;
+            }
+          });
+        }
         break;
         
       case 'rearrange_letters':
-        userAnswer.forEach((answer, qIndex) => {
-          if (answer && answer.toUpperCase() === question.questions[qIndex].correctAnswer) {
-            totalScore += 2;
-          }
-        });
+        if (Array.isArray(userAnswer)) {
+          userAnswer.forEach((answer, qIndex) => {
+            if (answer && answer.toUpperCase() === question.questions[qIndex].correctAnswer) {
+              totalScore += 2;
+            }
+          });
+        }
         break;
         
       case 'make_words':
         // Simple scoring for word making - 1 point per valid word
-        if (userAnswer && userAnswer.length > 0) {
+        if (Array.isArray(userAnswer) && userAnswer.length > 0) {
           totalScore += Math.min(userAnswer.length, 10);
         }
         break;
@@ -401,6 +411,6 @@ export const calculateScore = (questions, userAnswers) => {
   return {
     score: totalScore,
     maxScore: maxScore,
-    percentage: Math.round((totalScore / maxScore) * 100)
+    percentage: maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
   };
 };

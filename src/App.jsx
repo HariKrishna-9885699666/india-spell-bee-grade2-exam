@@ -81,10 +81,14 @@ function App() {
   }, [generateExamQuestions, startTransitionAction]);
 
   const completeExam = useCallback((answers) => {
-    startTransition(() => {
-      setUserAnswers(answers);
-      setExamCompleted(true);
-    });
+    try {
+      startTransition(() => {
+        setUserAnswers(answers);
+        setExamCompleted(true);
+      });
+    } catch (error) {
+      console.error('Error in completeExam:', error);
+    }
   }, []);
 
   const resetExam = useCallback(() => {

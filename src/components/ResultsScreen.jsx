@@ -12,10 +12,17 @@ const PDFLoadingFallback = () => (
 
 const ResultsScreen = ({ examData, userAnswers, onRestart }) => {
   // React 19: Memoized score calculation for better performance
-  const scoreData = useMemo(() => 
-    calculateScore(examData.questions, userAnswers), 
-    [examData.questions, userAnswers]
-  );
+  const scoreData = useMemo(() => {
+    try {
+      if (!examData?.questions || !userAnswers) {
+        return { score: 0, maxScore: 100, percentage: 0 };
+      }
+      return calculateScore(examData.questions, userAnswers);
+    } catch (error) {
+      console.error('Error calculating score:', error);
+      return { score: 0, maxScore: 100, percentage: 0 };
+    }
+  }, [examData.questions, userAnswers]);
   
   // React 19: Memoized grade calculation
   const gradeInfo = useMemo(() => {

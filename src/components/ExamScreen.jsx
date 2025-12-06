@@ -93,9 +93,13 @@ const ExamScreen = ({ examData, onCompleteExam }) => {
   }, [setOptimisticQuestion, startTransitionAction]);
 
   const handleSubmitExam = useCallback(() => {
-    startTransition(() => {
-      onCompleteExam(userAnswers);
-    });
+    try {
+      startTransition(() => {
+        onCompleteExam(userAnswers);
+      });
+    } catch (error) {
+      console.error('Error during exam submission:', error);
+    }
   }, [userAnswers, onCompleteExam]);
 
 
