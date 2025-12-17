@@ -82,6 +82,14 @@ function App() {
 
   const completeExam = useCallback((answers) => {
     try {
+      console.log('Completing exam with answers:', answers);
+      console.log('Current exam data:', examData);
+      
+      if (!examData || !examData.questions) {
+        console.error('Cannot complete exam - missing exam data');
+        return;
+      }
+      
       startTransition(() => {
         setUserAnswers(answers);
         setExamCompleted(true);
@@ -89,7 +97,7 @@ function App() {
     } catch (error) {
       console.error('Error in completeExam:', error);
     }
-  }, []);
+  }, [examData]);
 
   const resetExam = useCallback(() => {
     startTransition(() => {
@@ -115,16 +123,30 @@ function App() {
     <ErrorBoundary>
       <Suspense fallback={<LoadingSpinner />}>
         {examCompleted ? (
-          <ResultsScreen 
-            examData={examData}
-            userAnswers={userAnswers}
-            onRestart={resetExam}
-          />
+          examData && userAnswers ? (
+            <ResultsScreen 
+              examData={examData}
+              userAnswers={userAnswers}
+              onRestart={resetExam}
+            />
+          ) : (
+            <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
+              <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 text-center">
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Data Error</h2>
+                <p className="text-gray-600 mb-4">Unable to load exam results.</p>
+                <button onClick={resetExam} className="btn-primary">Start New Exam</button>
+              </div>
+            </div>
+          )
         ) : (
-          <ExamScreen 
-            examData={examData}
-            onCompleteExam={completeExam}
-          />
+          examData ? (
+            <ExamScreen 
+              examData={examData}
+              onCompleteExam={completeExam}
+            />
+          ) : (
+            <LoadingSpinner />
+          )
         )}
       </Suspense>
     </ErrorBoundary>

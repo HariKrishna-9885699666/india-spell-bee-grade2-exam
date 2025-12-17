@@ -11,12 +11,33 @@ const PDFLoadingFallback = () => (
 );
 
 const ResultsScreen = ({ examData, userAnswers, onRestart }) => {
+  // Guard clause - show error if data is missing
+  if (!examData || !examData.questions || !userAnswers) {
+    console.error('ResultsScreen - Missing data:', { examData, userAnswers });
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 text-center">
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Unable to Load Results</h2>
+          <p className="text-gray-600 mb-4">We couldn't load your exam results. Please try again.</p>
+          <button 
+            onClick={onRestart} 
+            className="btn-primary"
+          >
+            Start New Exam
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // React 19: Memoized score calculation for better performance
   const scoreData = useMemo(() => {
     try {
-      if (!examData?.questions || !userAnswers) {
-        return { score: 0, maxScore: 100, percentage: 0 };
-      }
       return calculateScore(examData.questions, userAnswers);
     } catch (error) {
       console.error('Error calculating score:', error);
@@ -73,33 +94,50 @@ const ResultsScreen = ({ examData, userAnswers, onRestart }) => {
         case 'pick_correct_from_four':
         case 'pick_misspelled_from_four':
         case 'pick_misspelled_from_three':
-        case 'pick_correct_from_two':
         case 'pick_correct_from_three':
-          userAnswer.forEach((answer, setIndex) => {
-            if (answer === question.sets[setIndex].correctAnswer) {
-              correctCount += 1;
-            }
-          });
+          if (question.sets && Array.isArray(userAnswer)) {
+            userAnswer.forEach((answer, setIndex) => {
+              if (question.sets[setIndex] && answer === question.sets[setIndex].correctAnswer) {
+                correctCount += 1;
+              }
+            });
+          }
+          break;
+          
+        case 'pick_correct_from_two':
+          if (question.pairs && Array.isArray(userAnswer)) {
+            userAnswer.forEach((answer, pairIndex) => {
+              if (question.pairs[pairIndex] && answer === question.pairs[pairIndex].correctAnswer) {
+                correctCount += 1;
+              }
+            });
+          }
           break;
           
         case 'missing_letter':
-          userAnswer.forEach((answer, qIndex) => {
-            if (answer === question.questions[qIndex].correctAnswer) {
-              correctCount += 1;
-            }
-          });
+          if (question.questions && Array.isArray(userAnswer)) {
+            userAnswer.forEach((answer, qIndex) => {
+              if (question.questions[qIndex] && answer === question.questions[qIndex].correctAnswer) {
+                correctCount += 1;
+              }
+            });
+          }
           break;
           
         case 'rearrange_letters':
-          userAnswer.forEach((answer, qIndex) => {
-            if (answer && answer.toUpperCase() === question.questions[qIndex].correctAnswer) {
-              correctCount += 2;
-            }
-          });
+          if (question.questions && Array.isArray(userAnswer)) {
+            userAnswer.forEach((answer, qIndex) => {
+              if (question.questions[qIndex] && answer && answer.toUpperCase() === question.questions[qIndex].correctAnswer) {
+                correctCount += 2;
+              }
+            });
+          }
           break;
           
         case 'make_words':
-          correctCount = Math.min(userAnswer.length, 10);
+          if (Array.isArray(userAnswer)) {
+            correctCount = Math.min(userAnswer.length, 10);
+          }
           break;
       }
       
